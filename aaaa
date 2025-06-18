@@ -1,98 +1,101 @@
--- Setup
 local player = game.Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- Hide Core Roblox UI including Backpack
 local StarterGui = game:GetService("StarterGui")
 StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.All, false)
-StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, false) -- Hide backpack/tools
+StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, false)
 
--- Hide all user GUIs in PlayerGui except FakeLoadingUI
 for _, gui in pairs(playerGui:GetChildren()) do
 	if gui:IsA("ScreenGui") and gui.Name ~= "FakeLoadingUI" then
 		gui.Enabled = false
 	end
 end
 
--- Create Fullscreen GUI
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "FakeLoadingUI"
 screenGui.ResetOnSpawn = false
 screenGui.IgnoreGuiInset = true
 screenGui.Parent = playerGui
+screenGui.BackgroundTransparency = 1 -- start transparent
 
--- Full black background
+-- Background gradient
 local bg = Instance.new("Frame")
 bg.Size = UDim2.new(1, 0, 1, 0)
 bg.Position = UDim2.new(0, 0, 0, 0)
-bg.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 bg.BorderSizePixel = 0
 bg.Parent = screenGui
 
--- Loading bar container (rounded corners)
+local bgGradient = Instance.new("UIGradient")
+bgGradient.Color = ColorSequence.new{
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(12, 12, 12)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(28, 28, 28))
+}
+bgGradient.Parent = bg
+
+-- Container with padding and rounded corners
 local container = Instance.new("Frame")
-container.Size = UDim2.new(0.5, 0, 0.12, 0)
-container.Position = UDim2.new(0.25, 0, 0.5, 0)
+container.Size = UDim2.new(0.5, 0, 0.15, 0)
+container.Position = UDim2.new(0.25, 0, 0.45, 0)
 container.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 container.BorderSizePixel = 0
 container.Parent = bg
 
 local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 12)
+corner.CornerRadius = UDim.new(0, 15)
 corner.Parent = container
 
--- Progress bar background (rounded corners)
+-- Progress bar background
 local barBG = Instance.new("Frame")
-barBG.Size = UDim2.new(0.95, 0, 0.45, 0)
-barBG.Position = UDim2.new(0.025, 0, 0.5, 0)
+barBG.Size = UDim2.new(0.9, 0, 0.35, 0)
+barBG.Position = UDim2.new(0.05, 0, 0.55, 0)
 barBG.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 barBG.BorderSizePixel = 0
 barBG.Parent = container
 
 local barCorner = Instance.new("UICorner")
-barCorner.CornerRadius = UDim.new(0, 10)
+barCorner.CornerRadius = UDim.new(0, 12)
 barCorner.Parent = barBG
 
--- Actual progress bar (rounded corners, purple gradient)
+-- Actual progress bar
 local bar = Instance.new("Frame")
 bar.Size = UDim2.new(0, 0, 1, 0)
-bar.BackgroundColor3 = Color3.fromRGB(128, 0, 255) -- base purple
+bar.BackgroundColor3 = Color3.fromRGB(140, 0, 255)
 bar.BorderSizePixel = 0
 bar.Parent = barBG
 
 local barGradient = Instance.new("UIGradient")
 barGradient.Color = ColorSequence.new{
-	ColorSequenceKeypoint.new(0, Color3.fromRGB(180, 100, 255)),
-	ColorSequenceKeypoint.new(1, Color3.fromRGB(90, 0, 180))
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(200, 100, 255)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(100, 0, 200))
 }
 barGradient.Parent = bar
 
 local barFillCorner = Instance.new("UICorner")
-barFillCorner.CornerRadius = UDim.new(0, 10)
+barFillCorner.CornerRadius = UDim.new(0, 12)
 barFillCorner.Parent = bar
 
--- Glow effect using UIStroke on the progress bar
+-- Glow pulse effect
 local glow = Instance.new("UIStroke")
-glow.Thickness = 4
-glow.Color = Color3.fromRGB(180, 100, 255)
-glow.Transparency = 0.6
+glow.Thickness = 5
+glow.Color = Color3.fromRGB(200, 100, 255)
+glow.Transparency = 0.5
 glow.Parent = bar
 
 -- Percentage text
 local percentLabel = Instance.new("TextLabel")
-percentLabel.Size = UDim2.new(1, 0, 0.35, 0)
-percentLabel.Position = UDim2.new(0, 0, 0.05, 0)
+percentLabel.Size = UDim2.new(1, 0, 0.4, 0)
+percentLabel.Position = UDim2.new(0, 0, 0.1, 0)
 percentLabel.BackgroundTransparency = 1
 percentLabel.TextColor3 = Color3.fromRGB(230, 230, 230)
-percentLabel.Font = Enum.Font.GothamBold
+percentLabel.Font = Enum.Font.GothamBlack
 percentLabel.TextScaled = true
 percentLabel.Text = "0%"
 percentLabel.Parent = container
 
--- Status text under the bar
+-- Status text
 local statusLabel = Instance.new("TextLabel")
-statusLabel.Size = UDim2.new(1, 0, 0.3, 0)
-statusLabel.Position = UDim2.new(0, 0, 1.0, 0)
+statusLabel.Size = UDim2.new(1, 0, 0.25, 0)
+statusLabel.Position = UDim2.new(0, 0, 1, 0)
 statusLabel.BackgroundTransparency = 1
 statusLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
 statusLabel.Font = Enum.Font.Gotham
@@ -100,7 +103,7 @@ statusLabel.TextScaled = true
 statusLabel.Text = "Initializing..."
 statusLabel.Parent = container
 
--- Credit text at bottom
+-- Credit text
 local creditLabel = Instance.new("TextLabel")
 creditLabel.Size = UDim2.new(1, 0, 0.08, 0)
 creditLabel.Position = UDim2.new(0, 0, 0.92, 0)
@@ -111,7 +114,14 @@ creditLabel.TextScaled = true
 creditLabel.Text = "script made by @_herman"
 creditLabel.Parent = bg
 
--- Friendly fake status messages
+-- Spinner icon
+local spinner = Instance.new("ImageLabel")
+spinner.Size = UDim2.new(0, 40, 0, 40)
+spinner.Position = UDim2.new(0.95, -50, 0.05, 0)
+spinner.BackgroundTransparency = 1
+spinner.Image = "rbxassetid://3926305904" -- Roblox loading spinner icon
+spinner.Parent = container
+
 local messages = {
 	"Bypassing anti-cheat...",
 	"Copying your pets...",
@@ -125,22 +135,49 @@ local messages = {
 	"Loading memes..."
 }
 
--- Animate loading over 2 minutes (2 sec per 1%)
 local steps = 100
 local timePerStep = 2
 local progress = 0
 
+-- Fade-in effect for whole GUI
+for i = 0, 1, 0.05 do
+	screenGui.BackgroundTransparency = 1 - i
+	wait(0.03)
+end
+
 while progress <= 100 do
+	-- Smoothly lerp bar size
+	local targetWidth = progress / 100
+	local currentWidth = bar.Size.X.Scale
+	bar.Size = UDim2.new(currentWidth + (targetWidth - currentWidth) * 0.1, 0, 1, 0)
+
 	percentLabel.Text = progress .. "%"
-	bar.Size = UDim2.new(progress / 100, 0, 1, 0)
+
+	-- Animate percentage label scaling
+	local scaleFactor = 1 + math.sin(tick() * 10) * 0.05
+	percentLabel.TextScaled = false
+	percentLabel.TextSize = 40 * scaleFactor
+	percentLabel.TextScaled = true
+
+	-- Glow pulse animation
+	glow.Transparency = 0.4 + 0.3 * math.sin(tick() * 6)
+
 	if progress % 10 == 0 then
 		statusLabel.Text = messages[math.random(1, #messages)]
 	end
+
+	-- Rotate spinner
+	spinner.Rotation = spinner.Rotation + 10
+	if spinner.Rotation >= 360 then spinner.Rotation = 0 end
+
 	progress += 1
 	wait(timePerStep)
 end
 
--- End of loading, destroy UI
-screenGui:Destroy()
+-- Fade-out effect
+for i = 1, 0, -0.05 do
+	screenGui.BackgroundTransparency = 1 - i
+	wait(0.03)
+end
 
--- Optionally restore GUIs or CoreGui here if needed
+screenGui:Destroy()
