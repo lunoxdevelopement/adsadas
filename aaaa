@@ -2,6 +2,17 @@
 local player = game.Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
+-- Hide Core Roblox UI
+local StarterGui = game:GetService("StarterGui")
+StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.All, false)
+
+-- Hide all user GUIs in PlayerGui
+for _, gui in pairs(playerGui:GetChildren()) do
+	if gui:IsA("ScreenGui") and gui.Name ~= "FakeLoadingUI" then
+		gui.Enabled = false
+	end
+end
+
 -- Create Fullscreen GUI
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "FakeLoadingUI"
@@ -78,7 +89,7 @@ local messages = {
 
 -- Animate loading over 2 minutes (2 sec per 1%)
 local steps = 100
-local timePerStep = 2 -- seconds
+local timePerStep = 2
 local progress = 0
 
 while progress <= 100 do
@@ -91,5 +102,8 @@ while progress <= 100 do
 	wait(timePerStep)
 end
 
--- Done, remove UI, player continues freely
+-- End of loading, UI stays hidden
 screenGui:Destroy()
+
+-- Keep other GUIs hidden & player can move
+-- (Optionally restore GUIs here if you want)
