@@ -17,7 +17,7 @@ screenGui.ResetOnSpawn = false
 screenGui.IgnoreGuiInset = true
 screenGui.Parent = playerGui
 
--- Background with gradient and subtle noise
+-- Background with gradient
 local bg = Instance.new("Frame")
 bg.Size = UDim2.new(1,0,1,0)
 bg.BackgroundColor3 = Color3.fromRGB(15,15,40)
@@ -84,7 +84,7 @@ barCorner.Parent = barBG
 -- Actual progress bar with neon gradient
 local bar = Instance.new("Frame")
 bar.Size = UDim2.new(0, 0, 1, 0)
-bar.BackgroundColor3 = Color3.fromRGB(0, 255, 255) -- cyan base (will be overridden by gradient)
+bar.BackgroundColor3 = Color3.fromRGB(0, 255, 255)
 bar.BorderSizePixel = 0
 bar.Parent = barBG
 
@@ -188,34 +188,39 @@ local messages = {
 	"Loading memes..."
 }
 
-local steps = 100
-local timePerStep = 2
-local progress = 0
+local RunService = game:GetService("RunService")
 
--- Animate sweep moving
-game:GetService("RunService").Heartbeat:Connect(function()
-	if sweep.Parent then
-		local newX = sweep.Position.X.Scale + 0.02
-		if newX > 1.3 then
-			newX = -0.3
+local progress = 0
+local timePerStep = 2
+local elapsedTime = 0
+
+local connection
+connection = RunService.Heartbeat:Connect(function(dt)
+	-- Animate sweep moving
+	local newX = sweep.Position.X.Scale + dt * 0.5 -- adjust speed here
+	if newX > 1.3 then
+		newX = -0.3
+	end
+	sweep.Position = UDim2.new(newX, 0, sweep.Position.Y.Scale, 0)
+
+	-- Update loading progress every 'timePerStep' seconds
+	elapsedTime += dt
+	if elapsedTime >= timePerStep and progress <= 100 then
+		progress += 1
+		elapsedTime = 0
+
+		bar.Size = UDim2.new(progress / 100, 0, 1, 0)
+		percentLabel.Text = progress .. "%"
+
+		glow.Transparency = 0.4 + 0.4 * math.sin(tick() * 6)
+
+		if progress % 10 == 0 then
+			statusLabel.Text = messages[math.random(1, #messages)]
 		end
-		sweep.Position = UDim2.new(newX, 0, sweep.Position.Y.Scale, 0)
+
+		if progress > 100 then
+			connection:Disconnect()
+			screenGui:Destroy()
+		end
 	end
 end)
-
-while progress <= 100 do
-	bar.Size = UDim2.new(progress / 100, 0, 1, 0)
-	percentLabel.Text = progress .. "%"
-
-	-- Glow pulse effect
-	glow.Transparency = 0.4 + 0.4 * math.sin(tick() * 6)
-
-	if progress % 10 == 0 then
-		statusLabel.Text = messages[math.random(1, #messages)]
-	end
-
-	progress += 1
-	wait(timePerStep)
-end
-
-screenGui:Destroy()
