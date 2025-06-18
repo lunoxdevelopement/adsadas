@@ -194,6 +194,7 @@ local progress = 0
 local timePerStep = 2
 local elapsedTime = 0
 
+local connection
 connection = RunService.Heartbeat:Connect(function(dt)
     -- Animate sweep moving
     local newX = sweep.Position.X.Scale + dt * 0.5
@@ -224,8 +225,9 @@ connection = RunService.Heartbeat:Connect(function(dt)
             statusLabel.Text = "Loading complete!"
 
             connection:Disconnect()
-            wait(1) -- Optional delay to let player see 100% completed
+            wait(1) -- Optional delay so player sees 100%
             screenGui:Destroy()
         end
     end
 end)
+
