@@ -76,10 +76,9 @@ local messages = {
 	"Loading memes..."
 }
 
--- Animate loading slowly over 3 minutes
-local totalTime = 180 -- 3 minutes in seconds
+-- Animate loading over 2 minutes (2 sec per 1%)
 local steps = 100
-local timePerStep = totalTime / steps
+local timePerStep = 2 -- seconds
 local progress = 0
 
 while progress <= 100 do
