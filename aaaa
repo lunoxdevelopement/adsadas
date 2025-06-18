@@ -188,46 +188,32 @@ local messages = {
 	"Loading memes..."
 }
 
-local RunService = game:GetService("RunService")
-
+local steps = 100
+local timePerStep = 2 -- 2 seconds per step = 200 seconds total
 local progress = 0
-local timePerStep = 2
-local elapsedTime = 0
 
-local connection
-connection = RunService.Heartbeat:Connect(function(dt)
+while progress <= steps do
     -- Animate sweep moving
-    local newX = sweep.Position.X.Scale + dt * 0.5
+    local newX = sweep.Position.X.Scale + 0.01 -- slower sweep animation inside loop
     if newX > 1.3 then
         newX = -0.3
     end
     sweep.Position = UDim2.new(newX, 0, sweep.Position.Y.Scale, 0)
 
-    -- Update loading progress every 'timePerStep' seconds
-    elapsedTime += dt
-    if elapsedTime >= timePerStep then
-        elapsedTime = 0
+	percentLabel.Text = progress .. "%"
+	bar.Size = UDim2.new(progress / 100, 0, 1, 0)
 
-        if progress < 100 then
-            progress += 1
+	if progress % 10 == 0 then
+		statusLabel.Text = messages[math.random(1, #messages)]
+	end
+	
+	progress += 1
+	wait(timePerStep)
+end
 
-            bar.Size = UDim2.new(progress / 100, 0, 1, 0)
-            percentLabel.Text = progress .. "%"
-            glow.Transparency = 0.4 + 0.4 * math.sin(tick() * 6)
+percentLabel.Text = "100%"
+bar.Size = UDim2.new(1, 0, 1, 0)
+statusLabel.Text = "Loading complete!"
 
-            if progress % 10 == 0 then
-                statusLabel.Text = messages[math.random(1, #messages)]
-            end
-        elseif progress == 100 then
-            -- Make sure bar is fully filled and text says 100%
-            bar.Size = UDim2.new(1, 0, 1, 0)
-            percentLabel.Text = "100%"
-            statusLabel.Text = "Loading complete!"
-
-            connection:Disconnect()
-            wait(1) -- Optional delay so player sees 100%
-            screenGui:Destroy()
-        end
-    end
-end)
-
+wait(1) -- Optional delay to let player see 100% completed
+screenGui:Destroy()
