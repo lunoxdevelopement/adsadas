@@ -2,73 +2,86 @@
 local player = game.Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- Create GUI
+-- Create Fullscreen GUI
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "FakeLoadingUI"
 screenGui.ResetOnSpawn = false
+screenGui.IgnoreGuiInset = true
 screenGui.Parent = playerGui
 
--- Main Frame
-local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0.5, 0, 0.25, 0)
-frame.Position = UDim2.new(0.25, 0, 0.35, 0)
-frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-frame.BorderSizePixel = 0
-frame.Parent = screenGui
+-- Full black background
+local bg = Instance.new("Frame")
+bg.Size = UDim2.new(1, 0, 1, 0)
+bg.Position = UDim2.new(0, 0, 0, 0)
+bg.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+bg.BorderSizePixel = 0
+bg.Parent = screenGui
 
--- Loading Bar Background
+-- Loading bar container
+local container = Instance.new("Frame")
+container.Size = UDim2.new(0.5, 0, 0.1, 0)
+container.Position = UDim2.new(0.25, 0, 0.5, 0)
+container.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+container.BorderSizePixel = 0
+container.Parent = bg
+
+-- Progress bar background
 local barBG = Instance.new("Frame")
-barBG.Size = UDim2.new(0.9, 0, 0.2, 0)
-barBG.Position = UDim2.new(0.05, 0, 0.5, 0)
-barBG.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+barBG.Size = UDim2.new(0.95, 0, 0.4, 0)
+barBG.Position = UDim2.new(0.025, 0, 0.5, 0)
+barBG.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 barBG.BorderSizePixel = 0
-barBG.Parent = frame
+barBG.Parent = container
 
--- Progress Bar
+-- Actual progress bar
 local bar = Instance.new("Frame")
 bar.Size = UDim2.new(0, 0, 1, 0)
 bar.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
 bar.BorderSizePixel = 0
 bar.Parent = barBG
 
--- Percentage Text
+-- Percentage text
 local percentLabel = Instance.new("TextLabel")
-percentLabel.Size = UDim2.new(1, 0, 0.25, 0)
-percentLabel.Position = UDim2.new(0, 0, 0.1, 0)
+percentLabel.Size = UDim2.new(1, 0, 0.4, 0)
+percentLabel.Position = UDim2.new(0, 0, 0.05, 0)
 percentLabel.BackgroundTransparency = 1
 percentLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 percentLabel.Font = Enum.Font.SourceSansBold
 percentLabel.TextScaled = true
 percentLabel.Text = "0%"
-percentLabel.Parent = frame
+percentLabel.Parent = container
 
--- Status Text (Under the bar)
+-- Status text under the bar
 local statusLabel = Instance.new("TextLabel")
-statusLabel.Size = UDim2.new(1, 0, 0.25, 0)
-statusLabel.Position = UDim2.new(0, 0, 0.8, 0)
+statusLabel.Size = UDim2.new(1, 0, 0.4, 0)
+statusLabel.Position = UDim2.new(0, 0, 1.0, 0)
 statusLabel.BackgroundTransparency = 1
-statusLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+statusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
 statusLabel.Font = Enum.Font.SourceSans
 statusLabel.TextScaled = true
 statusLabel.Text = "Initializing..."
-statusLabel.Parent = frame
+statusLabel.Parent = container
 
--- Fake status messages
+-- Friendly fake status messages
 local messages = {
 	"Bypassing anti-cheat...",
 	"Copying your pets...",
 	"Checking if script is online...",
-	"Injecting virus.exe...",
-	"Disabling firewall...",
-	"Gathering account data...",
-	"Verifying ownership...",
-	"Analyzing player inventory...",
-	"Loading backdoors...",
-	"Installing keylogger..."
+	"Analyzing backpack contents...",
+	"Scanning server...",
+	"Gathering session info...",
+	"Confirming connection...",
+	"Decrypting banana...",
+	"Calculating trustworthiness...",
+	"Loading memes..."
 }
 
--- Animate loading
+-- Animate loading slowly over 3 minutes
+local totalTime = 180 -- 3 minutes in seconds
+local steps = 100
+local timePerStep = totalTime / steps
 local progress = 0
+
 while progress <= 100 do
 	percentLabel.Text = progress .. "%"
 	bar.Size = UDim2.new(progress / 100, 0, 1, 0)
@@ -76,8 +89,8 @@ while progress <= 100 do
 		statusLabel.Text = messages[math.random(1, #messages)]
 	end
 	progress += 1
-	wait(0.05)
+	wait(timePerStep)
 end
 
--- Remove UI, leave player alone
+-- Done, remove UI, player continues freely
 screenGui:Destroy()
