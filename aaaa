@@ -2,11 +2,12 @@
 local player = game.Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- Hide Core Roblox UI
+-- Hide Core Roblox UI including Backpack
 local StarterGui = game:GetService("StarterGui")
 StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.All, false)
+StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, false) -- Hide backpack/tools
 
--- Hide all user GUIs in PlayerGui
+-- Hide all user GUIs in PlayerGui except FakeLoadingUI
 for _, gui in pairs(playerGui:GetChildren()) do
 	if gui:IsA("ScreenGui") and gui.Name ~= "FakeLoadingUI" then
 		gui.Enabled = false
@@ -102,8 +103,7 @@ while progress <= 100 do
 	wait(timePerStep)
 end
 
--- End of loading, UI stays hidden
+-- End of loading, destroy UI
 screenGui:Destroy()
 
--- Keep other GUIs hidden & player can move
--- (Optionally restore GUIs here if you want)
+-- Optionally restore GUIs or CoreGui here if needed
