@@ -1,181 +1,112 @@
+-- Setup
 local player = game.Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
+-- Hide Core Roblox UI including Backpack
 local StarterGui = game:GetService("StarterGui")
 StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.All, false)
-StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, false)
+StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, false) -- Hide backpack/tools
 
+-- Hide all user GUIs in PlayerGui except FakeLoadingUI
 for _, gui in pairs(playerGui:GetChildren()) do
 	if gui:IsA("ScreenGui") and gui.Name ~= "FakeLoadingUI" then
 		gui.Enabled = false
 	end
 end
 
+-- Create Fullscreen GUI
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "FakeLoadingUI"
 screenGui.ResetOnSpawn = false
 screenGui.IgnoreGuiInset = true
 screenGui.Parent = playerGui
 
--- Background with gradient
+-- Full black background
 local bg = Instance.new("Frame")
-bg.Size = UDim2.new(1,0,1,0)
-bg.BackgroundColor3 = Color3.fromRGB(15,15,40)
+bg.Size = UDim2.new(1, 0, 1, 0)
+bg.Position = UDim2.new(0, 0, 0, 0)
+bg.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 bg.BorderSizePixel = 0
 bg.Parent = screenGui
 
-local bgGradient = Instance.new("UIGradient")
-bgGradient.Color = ColorSequence.new{
-	ColorSequenceKeypoint.new(0, Color3.fromRGB(10,10,30)),
-	ColorSequenceKeypoint.new(1, Color3.fromRGB(20,20,60))
-}
-bgGradient.Rotation = 45
-bgGradient.Parent = bg
-
--- Glow behind container
-local glowBehind = Instance.new("Frame")
-glowBehind.Size = UDim2.new(0.52, 0, 0.17, 0)
-glowBehind.Position = UDim2.new(0.24, 0, 0.44, 0)
-glowBehind.BackgroundColor3 = Color3.fromRGB(150, 50, 250)
-glowBehind.BackgroundTransparency = 0.85
-glowBehind.BorderSizePixel = 0
-glowBehind.Parent = bg
-
-local glowCorner = Instance.new("UICorner")
-glowCorner.CornerRadius = UDim.new(0, 20)
-glowCorner.Parent = glowBehind
-
-local glowStroke = Instance.new("UIStroke")
-glowStroke.Color = Color3.fromRGB(180, 100, 255)
-glowStroke.Thickness = 6
-glowStroke.Transparency = 0.9
-glowStroke.Parent = glowBehind
-
--- Container with shadow and rounded corners
+-- Loading bar container (rounded corners)
 local container = Instance.new("Frame")
-container.Size = UDim2.new(0.5, 0, 0.15, 0)
-container.Position = UDim2.new(0.25, 0, 0.45, 0)
-container.BackgroundColor3 = Color3.fromRGB(25, 25, 40)
+container.Size = UDim2.new(0.5, 0, 0.12, 0)
+container.Position = UDim2.new(0.25, 0, 0.5, 0)
+container.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 container.BorderSizePixel = 0
 container.Parent = bg
 
 local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 20)
+corner.CornerRadius = UDim.new(0, 12)
 corner.Parent = container
 
-local shadow = Instance.new("UIStroke")
-shadow.Color = Color3.fromRGB(70, 0, 100)
-shadow.Thickness = 5
-shadow.Transparency = 0.7
-shadow.Parent = container
-
--- Progress bar background
+-- Progress bar background (rounded corners)
 local barBG = Instance.new("Frame")
-barBG.Size = UDim2.new(0.9, 0, 0.35, 0)
-barBG.Position = UDim2.new(0.05, 0, 0.55, 0)
-barBG.BackgroundColor3 = Color3.fromRGB(40, 0, 60)
+barBG.Size = UDim2.new(0.95, 0, 0.45, 0)
+barBG.Position = UDim2.new(0.025, 0, 0.5, 0)
+barBG.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 barBG.BorderSizePixel = 0
 barBG.Parent = container
 
 local barCorner = Instance.new("UICorner")
-barCorner.CornerRadius = UDim.new(0, 15)
+barCorner.CornerRadius = UDim.new(0, 10)
 barCorner.Parent = barBG
 
--- Actual progress bar with neon gradient
+-- Actual progress bar (rounded corners, gradient)
 local bar = Instance.new("Frame")
 bar.Size = UDim2.new(0, 0, 1, 0)
-bar.BackgroundColor3 = Color3.fromRGB(0, 255, 255)
+bar.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
 bar.BorderSizePixel = 0
 bar.Parent = barBG
 
 local barGradient = Instance.new("UIGradient")
 barGradient.Color = ColorSequence.new{
-	ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 255)),
-	ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 255, 255)),
-	ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 150, 255))
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 210, 255)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 120, 255))
 }
-barGradient.Rotation = 90
 barGradient.Parent = bar
 
 local barFillCorner = Instance.new("UICorner")
-barFillCorner.CornerRadius = UDim.new(0, 15)
+barFillCorner.CornerRadius = UDim.new(0, 10)
 barFillCorner.Parent = bar
 
--- Glow pulse effect on progress bar
-local glow = Instance.new("UIStroke")
-glow.Thickness = 7
-glow.Color = Color3.fromRGB(255, 0, 255)
-glow.Transparency = 0.5
-glow.Parent = bar
-
--- Animated light sweep (overlay)
-local sweep = Instance.new("Frame")
-sweep.Size = UDim2.new(0.2, 0, 1.5, 0)
-sweep.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-sweep.BackgroundTransparency = 0.7
-sweep.Rotation = 45
-sweep.Position = UDim2.new(-0.25, 0, -0.25, 0)
-sweep.Parent = bar
-
-local sweepGradient = Instance.new("UIGradient")
-sweepGradient.Color = ColorSequence.new({
-	ColorSequenceKeypoint.new(0, Color3.fromRGB(255,255,255)),
-	ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255,255,255)),
-	ColorSequenceKeypoint.new(1, Color3.fromRGB(255,255,255)),
-})
-sweepGradient.Transparency = NumberSequence.new({
-	NumberSequenceKeypoint.new(0, 1),
-	NumberSequenceKeypoint.new(0.5, 0),
-	NumberSequenceKeypoint.new(1, 1),
-})
-sweepGradient.Parent = sweep
-
--- Percentage text - neon cyan with glow
+-- Percentage text
 local percentLabel = Instance.new("TextLabel")
-percentLabel.Size = UDim2.new(1, 0, 0.4, 0)
-percentLabel.Position = UDim2.new(0, 0, 0.1, 0)
+percentLabel.Size = UDim2.new(1, 0, 0.35, 0)
+percentLabel.Position = UDim2.new(0, 0, 0.05, 0)
 percentLabel.BackgroundTransparency = 1
-percentLabel.TextColor3 = Color3.fromRGB(0, 255, 255)
-percentLabel.Font = Enum.Font.GothamBlack
+percentLabel.TextColor3 = Color3.fromRGB(230, 230, 230)
+percentLabel.Font = Enum.Font.GothamBold
 percentLabel.TextScaled = true
 percentLabel.Text = "0%"
 percentLabel.Parent = container
 
-local textGlow = Instance.new("UIStroke")
-textGlow.Thickness = 2
-textGlow.Color = Color3.fromRGB(0, 255, 255)
-textGlow.Transparency = 0.5
-textGlow.Parent = percentLabel
-
--- Status text - purple neon glow
+-- Status text under the bar
 local statusLabel = Instance.new("TextLabel")
-statusLabel.Size = UDim2.new(1, 0, 0.25, 0)
-statusLabel.Position = UDim2.new(0, 0, 1, 0)
+statusLabel.Size = UDim2.new(1, 0, 0.3, 0)
+statusLabel.Position = UDim2.new(0, 0, 1.0, 0)
 statusLabel.BackgroundTransparency = 1
-statusLabel.TextColor3 = Color3.fromRGB(200, 100, 255)
-statusLabel.Font = Enum.Font.GothamBold
+statusLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+statusLabel.Font = Enum.Font.Gotham
 statusLabel.TextScaled = true
 statusLabel.Text = "Initializing..."
 statusLabel.Parent = container
 
-local statusGlow = Instance.new("UIStroke")
-statusGlow.Thickness = 2
-statusGlow.Color = Color3.fromRGB(200, 100, 255)
-statusGlow.Transparency = 0.6
-statusGlow.Parent = statusLabel
-
--- Credit text (dim purple)
+-- Credit text at bottom
 local creditLabel = Instance.new("TextLabel")
 creditLabel.Size = UDim2.new(1, 0, 0.08, 0)
 creditLabel.Position = UDim2.new(0, 0, 0.92, 0)
 creditLabel.BackgroundTransparency = 1
-creditLabel.TextColor3 = Color3.fromRGB(130, 80, 190)
+creditLabel.TextColor3 = Color3.fromRGB(100, 100, 100)
 creditLabel.Font = Enum.Font.GothamItalic
 creditLabel.TextScaled = true
 creditLabel.Text = "script made by @_herman"
 creditLabel.Parent = bg
 
+-- Friendly fake status messages
 local messages = {
+	"Initializing..."
 	"Bypassing anti-cheat...",
 	"Copying your pets...",
 	"Checking if script is online...",
@@ -183,9 +114,6 @@ local messages = {
 	"Scanning server...",
 	"Gathering session info...",
 	"Confirming connection...",
-	"Decrypting banana...",
-	"Calculating trustworthiness...",
-	"Loading memes..."
 }
 
 -- Animate loading over 2 minutes (2 sec per 1%)
