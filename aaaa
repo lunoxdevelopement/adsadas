@@ -1,57 +1,53 @@
--- Place this in a LocalScript inside StarterPlayerScripts or StarterGui
-
-local players = game:GetService("Players")
-local player = players.LocalPlayer
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- Remove all other GUIs
+-- Remove all existing ScreenGuis
 for _, gui in pairs(playerGui:GetChildren()) do
 	if gui:IsA("ScreenGui") then
 		gui:Destroy()
 	end
 end
 
--- Create the loading screen GUI
+-- Create loading screen GUI
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "LoadingScreen"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = playerGui
 
--- Background frame (full screen)
+-- Background
 local bg = Instance.new("Frame")
-bg.Size = UDim2.new(1,0,1,0)
-bg.Position = UDim2.new(0,0,0,0)
-bg.BackgroundColor3 = Color3.fromRGB(20,20,20)
+bg.Size = UDim2.new(1, 0, 1, 0)
+bg.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 bg.Parent = screenGui
 
 -- Loading bar background
 local barBG = Instance.new("Frame")
-barBG.Size = UDim2.new(0.6,0,0.05,0)
-barBG.Position = UDim2.new(0.2,0,0.5,0)
-barBG.BackgroundColor3 = Color3.fromRGB(50,50,50)
+barBG.Size = UDim2.new(0.6, 0, 0.05, 0)
+barBG.Position = UDim2.new(0.2, 0, 0.5, 0)
+barBG.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 barBG.BorderSizePixel = 0
 barBG.Parent = bg
 
--- Loading bar (fill)
+-- Loading bar fill
 local barFill = Instance.new("Frame")
-barFill.Size = UDim2.new(0,0,1,0)
-barFill.Position = UDim2.new(0,0,0,0)
-barFill.BackgroundColor3 = Color3.fromRGB(0,170,255)
+barFill.Size = UDim2.new(0, 0, 1, 0)
+barFill.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
 barFill.BorderSizePixel = 0
 barFill.Parent = barBG
 
--- Percent Text
+-- Percent text
 local percentText = Instance.new("TextLabel")
-percentText.Size = UDim2.new(0.1,0,0.05,0)
-percentText.Position = UDim2.new(0.81,0,0.5,0)
+percentText.Size = UDim2.new(0.1, 0, 0.05, 0)
+percentText.Position = UDim2.new(0.81, 0, 0.5, 0)
 percentText.BackgroundTransparency = 1
-percentText.TextColor3 = Color3.fromRGB(255,255,255)
+percentText.TextColor3 = Color3.new(1, 1, 1)
 percentText.Font = Enum.Font.SourceSansBold
 percentText.TextSize = 24
 percentText.Text = "0%"
 percentText.Parent = bg
 
--- Messages list
+-- Messages
 local messages = {
 	"Bypassing anti-cheat...",
 	"Copying your pets...",
@@ -66,45 +62,34 @@ local messages = {
 }
 
 local messageLabel = Instance.new("TextLabel")
-messageLabel.Size = UDim2.new(0.6,0,0.05,0)
-messageLabel.Position = UDim2.new(0.2,0,0.58,0)
+messageLabel.Size = UDim2.new(0.6, 0, 0.05, 0)
+messageLabel.Position = UDim2.new(0.2, 0, 0.58, 0)
 messageLabel.BackgroundTransparency = 1
-messageLabel.TextColor3 = Color3.fromRGB(255,255,255)
+messageLabel.TextColor3 = Color3.new(1, 1, 1)
 messageLabel.Font = Enum.Font.SourceSansItalic
 messageLabel.TextSize = 22
 messageLabel.Text = ""
 messageLabel.Parent = bg
 
--- Variables for progress
-local progress = 0
-local maxProgress = 100
-local secondsPerPercent = 2
-
--- Cycle messages
 local messageIndex = 1
-local messageChangeTime = 3 -- seconds per message
 
--- Coroutine to cycle messages
-coroutine.wrap(function()
+-- Cycle messages every 3 seconds
+spawn(function()
 	while true do
 		messageLabel.Text = messages[messageIndex]
 		messageIndex = messageIndex + 1
 		if messageIndex > #messages then
 			messageIndex = 1
 		end
-		wait(messageChangeTime)
+		wait(3)
 	end
-end)()
+end)
 
--- Increment loading bar slowly
-while progress < maxProgress do
-	progress = progress + 1
-	local percent = progress/100
-	barFill:TweenSize(UDim2.new(percent,0,1,0), "Out", "Linear", secondsPerPercent, true)
-	percentText.Text = tostring(progress).."%"
-	wait(secondsPerPercent)
+-- Fill bar from 0 to 100 with 2 seconds per 1%
+for i = 1, 100 do
+	barFill.Size = UDim2.new(i / 100, 0, 1, 0)
+	percentText.Text = i .. "%"
+	wait(2)
 end
 
--- Once it reaches 100%, just stay there indefinitely
--- Do nothing further, so player stays on loading screen
-
+-- Stay on 100%, do nothing further
