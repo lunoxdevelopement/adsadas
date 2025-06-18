@@ -1,70 +1,149 @@
-local player = game.Players.LocalPlayer
+-- Settings
+local totalTimePerPercent = 2 -- seconds per 1%
+local totalPercent = 100
+local totalTime = totalTimePerPercent * totalPercent
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
+local backpack = player:WaitForChild("Backpack")
+local StarterGui = game:GetService("StarterGui")
 
 -- Create ScreenGui
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "FakeLoadingScreen"
+screenGui.ResetOnSpawn = false
 screenGui.Parent = playerGui
+screenGui.Enabled = false -- start invisible
 
--- Create Frame (loading bar background)
-local bgFrame = Instance.new("Frame")
-bgFrame.Size = UDim2.new(0.5, 0, 0, 30)
-bgFrame.Position = UDim2.new(0.25, 0, 0.5, 0)
-bgFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-bgFrame.BorderSizePixel = 0
-bgFrame.Parent = screenGui
+-- Background Frame (fullscreen black)
+local bg = Instance.new("Frame")
+bg.Size = UDim2.new(1, 0, 1, 0)
+bg.BackgroundColor3 = Color3.new(0, 0, 0)
+bg.Parent = screenGui
 
--- Create LoadingBar (the actual bar that grows)
-local loadingBar = Instance.new("Frame")
-loadingBar.Size = UDim2.new(0, 0, 1, 0)
-loadingBar.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-loadingBar.BorderSizePixel = 0
-loadingBar.Parent = bgFrame
+-- Loading Bar Background
+local barBack = Instance.new("Frame")
+barBack.Size = UDim2.new(0.6, 0, 0.05, 0)
+barBack.Position = UDim2.new(0.2, 0, 0.5, 0)
+barBack.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+barBack.BorderSizePixel = 0
+barBack.Parent = bg
 
--- Create Percentage Text
-local percentageText = Instance.new("TextLabel")
-percentageText.Size = UDim2.new(1, 0, 0, 30)
-percentageText.Position = UDim2.new(0, 0, 0, -35)
-percentageText.BackgroundTransparency = 1
-percentageText.TextColor3 = Color3.new(1, 1, 1)
-percentageText.Font = Enum.Font.SourceSansBold
-percentageText.TextSize = 24
-percentageText.Text = "0%"
-percentageText.Parent = bgFrame
+-- Loading Bar Fill
+local barFill = Instance.new("Frame")
+barFill.Size = UDim2.new(0, 0, 1, 0)
+barFill.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+barFill.BorderSizePixel = 0
+barFill.Parent = barBack
 
--- Create Loading Text (under the bar)
-local loadingText = Instance.new("TextLabel")
-loadingText.Size = UDim2.new(1, 0, 0, 30)
-loadingText.Position = UDim2.new(0, 0, 1, 5)
-loadingText.BackgroundTransparency = 1
-loadingText.TextColor3 = Color3.new(1, 1, 1)
-loadingText.Font = Enum.Font.SourceSansItalic
-loadingText.TextSize = 18
-loadingText.Text = ""
-loadingText.Parent = bgFrame
+-- Percentage Text
+local percentText = Instance.new("TextLabel")
+percentText.Size = UDim2.new(0.6, 0, 0.07, 0)
+percentText.Position = UDim2.new(0.2, 0, 0.44, 0)
+percentText.BackgroundTransparency = 1
+percentText.TextColor3 = Color3.new(1, 1, 1)
+percentText.Font = Enum.Font.GothamBold
+percentText.TextSize = 30
+percentText.Text = "0%"
+percentText.Parent = bg
 
--- Hide UI so player cannot see it
-screenGui.Enabled = false  -- disables the whole GUI
-
--- Loading text options
-local loadingMessages = {
+-- Fake loading message text
+local messages = {
     "Bypassing anti-cheat...",
     "Copying your pets...",
-    "Loading game assets...",
-    "Syncing with server...",
-    "Decrypting files...",
+    "Initializing game data...",
+    "Loading assets...",
+    "Syncing server info...",
+    "Almost there...",
 }
 
--- Function to update loading screen (runs invisibly)
-local function fakeLoading()
-    for i = 0, 100 do
-        loadingBar.Size = UDim2.new(i/100, 0, 1, 0)
-        percentageText.Text = i.."%"
-        loadingText.Text = loadingMessages[(i % #loadingMessages) + 1]
-        wait(0.05)
+local msgText = Instance.new("TextLabel")
+msgText.Size = UDim2.new(0.6, 0, 0.05, 0)
+msgText.Position = UDim2.new(0.2, 0, 0.57, 0)
+msgText.BackgroundTransparency = 1
+msgText.TextColor3 = Color3.new(1, 1, 1)
+msgText.Font = Enum.Font.GothamItalic
+msgText.TextSize = 20
+msgText.Text = ""
+msgText.Parent = bg
+
+-- Hide player's Backpack items
+local function hideBackpackItems(hide)
+    for _, item in pairs(backpack:GetChildren()) do
+        if item:IsA("Tool") then
+            item.Parent = hide and nil or backpack
+        end
     end
-    -- Stays at 100%
 end
 
--- Start fake loading
-fakeLoading()
+-- Hide player character tools as well
+local function hideCharacterTools(hide)
+    local character = player.Character
+    if character then
+        for _, item in pairs(character:GetChildren()) do
+            if item:IsA("Tool") then
+                item.Parent = hide and nil or character
+            end
+        end
+    end
+end
+
+-- We can alternatively just disable the backpack and character tools visually by unequipping and making invisible
+
+-- Start loading function
+local function startLoading()
+    screenGui.Enabled = true
+    
+    -- Hide backpack and character tools (unequip all tools)
+    -- Unequip tools
+    player.Character.Humanoid:UnequipTools()
+    
+    -- Remove tools temporarily from backpack and character
+    local storedBackpackItems = {}
+    local storedCharacterItems = {}
+    
+    for _, tool in pairs(backpack:GetChildren()) do
+        if tool:IsA("Tool") then
+            tool.Parent = nil
+            table.insert(storedBackpackItems, tool)
+        end
+    end
+    local character = player.Character
+    if character then
+        for _, tool in pairs(character:GetChildren()) do
+            if tool:IsA("Tool") then
+                tool.Parent = nil
+                table.insert(storedCharacterItems, tool)
+            end
+        end
+    end
+    
+    -- Hide default Roblox UI
+    StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.All, false)
+    
+    -- Loading loop
+    for percent = 1, totalPercent do
+        -- Update bar
+        barFill.Size = UDim2.new(percent / totalPercent, 0, 1, 0)
+        percentText.Text = tostring(percent) .. "%"
+        
+        -- Update message every few percents
+        if percent % 20 == 0 then
+            local newMsg = messages[math.random(1, #messages)]
+            msgText.Text = newMsg
+        end
+        
+        wait(totalTimePerPercent)
+    end
+    
+    -- Stay at 100%, do not kick
+    
+    -- Optional: keep hiding everything, or restore here if you want to make it usable again
+    -- For your request, keep hidden and loading screen visible
+    
+    -- Do NOT restore tools or UI
+end
+
+-- Start the loading automatically (you can call this manually if you want)
+startLoading()
